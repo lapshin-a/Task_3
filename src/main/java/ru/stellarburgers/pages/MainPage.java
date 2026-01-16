@@ -7,15 +7,17 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import ru.stellarburgers.config.Config;
+
 import java.time.Duration;
 
 public class MainPage extends BasePage {
-    private static final String PAGE_URL = "https://stellarburgers.education-services.ru";
+    private static final String PAGE_URL = Config.MAIN_PAGE_URL;
 
     private static final By MAIN_PAGE_TITLE =
             By.xpath("//h1[contains(text(), 'Конструктор')]");
 
-    private static final By LOGIN_BUTTON_MAIN =
+    public static final By LOGIN_BUTTON_MAIN =
             By.xpath("//button[contains(text(), 'Войти в аккаунт')]");
 
     // Ищем SVG иконку профиля в ссылке с href="/account"
@@ -39,13 +41,17 @@ public class MainPage extends BasePage {
     @Step("Открытие главной страницы")
     public MainPage openMainPage() {
         navigateTo(PAGE_URL);
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        // Явное ожидание загрузки главной страницы
+        waitForUrlContains(Config.MAIN_PAGE_URL);
         return this;
     }
 
     @Step("Проверка загрузки главной страницы")
     public boolean isMainPageLoaded() {
-        return isElementDisplayed(MAIN_PAGE_TITLE) || isElementDisplayed(LOGIN_BUTTON_MAIN) || isElementDisplayed(PERSONAL_ACCOUNT_BUTTON);
+        return driver.getCurrentUrl().contains(Config.MAIN_PAGE_URL) && 
+               (isElementDisplayed(MAIN_PAGE_TITLE) || 
+                isElementDisplayed(LOGIN_BUTTON_MAIN) || 
+                isElementDisplayed(PERSONAL_ACCOUNT_BUTTON));
     }
 
     @Step("Клик на кнопку 'Войти в аккаунт' на главной")
@@ -57,14 +63,14 @@ public class MainPage extends BasePage {
     @Step("Клик на 'Личный кабинет' для входа (когда не авторизован)")
     public LoginPage clickPersonalAccountToLogin() {
         clickProfileButton();
-        try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return new LoginPage(driver);
     }
 
     @Step("Клик на 'Личный кабинет' (когда авторизован)")
     public ProfilePage clickProfile() {
         clickProfileButton();
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        // Явное ожидание загрузки страницы профиля
+        waitForUrlContains(Config.PROFILE_PAGE_URL);
         return new ProfilePage(driver);
     }
 

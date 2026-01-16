@@ -38,7 +38,7 @@ public class User {
     public static User generateTestUser() {
         String email = "test_" + System.currentTimeMillis() + "@example.com";
         String password = "password123";
-        String name = "Test User";
+        String name = "Test User_" + System.currentTimeMillis();
         return new User(email, password, name);
     }
 }

@@ -6,9 +6,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import ru.stellarburgers.api.UserApi;
+import io.restassured.response.Response;
 
 public class BaseTest {
     protected WebDriver driver;
+    protected String userEmail;
+    protected String userPassword;
+    protected String userName;
+    protected String accessToken;
 
     @BeforeEach
     public void setUp() {
@@ -21,6 +27,17 @@ public class BaseTest {
         }
 
         driver.manage().window().maximize();
+        
+        // Создание пользователя через API перед каждым тестом
+        userEmail = UserApi.generateEmail();
+        userPassword = UserApi.generatePassword();
+        userName = UserApi.generateName();
+        
+        Response registerResponse = UserApi.registerUser(userEmail, userPassword, userName);
+        registerResponse.then().statusCode(200);
+        
+        // Сохраняем токен для удаления в конце теста
+        accessToken = registerResponse.jsonPath().getString("accessToken");
     }
 
     private void setupChromeDriver() {
@@ -43,6 +60,11 @@ public class BaseTest {
     public void tearDown() {
         if (driver != null) {
             driver.quit();
+        }
+        
+        // Удаление созданного пользователя через API, если токен доступен
+        if (accessToken != null && !accessToken.isEmpty()) {
+            UserApi.deleteUser(accessToken);
         }
     }
 

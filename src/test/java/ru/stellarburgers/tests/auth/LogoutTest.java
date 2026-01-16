@@ -18,33 +18,19 @@ public class LogoutTest extends BaseTest {
     @DisplayName("Выход из аккаунта")
     @Description("Проверяет: регистрация → вход → личный кабинет → выход")
     public void testLogout() {
-        // 1. Регистрация
-        String uniqueEmail = "user_" + System.currentTimeMillis() + "@test.com";
-        RegisterPage registerPage = new RegisterPage(driver);
-        registerPage.openRegisterPage();
-        registerPage.enterName("Test User")
-                .enterEmail(uniqueEmail)
-                .enterPassword("password123");
-        LoginPage loginPage = registerPage.clickRegisterButton();
-
-        try { Thread.sleep(1000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        // 1. ВХОД - через главную страницу
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.openLoginPage();
 
         // 2. Вход
-        loginPage.enterEmail(uniqueEmail).enterPassword("password123");
+        loginPage.enterEmail(userEmail).enterPassword(userPassword);
         MainPage mainPage = loginPage.clickLoginButton();
-
-        try { Thread.sleep(2000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // 3. Переход в личный кабинет
         mainPage.clickProfile();
 
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
         // 4. Выход
-        ProfilePage profilePage = new ProfilePage(driver);
-        LoginPage logoutResult = profilePage.clickLogout();
-
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        LoginPage logoutResult = ProfilePage.clickLogout();
 
         // 5. ПРОВЕРКА: Вернулись на страницу входа
         assertTrue(logoutResult.isLoginPageLoaded(),

@@ -3,6 +3,7 @@ package ru.stellarburgers.pages;
 import io.qameta.allure.Step;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import ru.stellarburgers.config.Config;
 
 public class ProfilePage extends BasePage {
 
@@ -24,9 +25,7 @@ public class ProfilePage extends BasePage {
     }
 
     @Step("Клик на кнопку 'Конструктор' из профиля")
-    public MainPage clickConstructor() {
-        try { Thread.sleep(800); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
+    public static MainPage clickConstructor() {
         try {
             // Вариант 1: Попытка кликнуть на "Конструктор"
             click(CONSTRUCTOR_BUTTON);
@@ -46,14 +45,16 @@ public class ProfilePage extends BasePage {
             }
         }
 
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        // Явное ожидание загрузки главной страницы
+        waitForUrlContains(Config.MAIN_PAGE_URL);
         return new MainPage(driver);
     }
 
     @Step("Клик на кнопку 'Выход'")
-    public LoginPage clickLogout() {
+    public static LoginPage clickLogout() {
         click(LOGOUT_BUTTON);
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        // Явное ожидание возврата на страницу входа
+        waitForUrlContains(Config.LOGIN_PAGE_URL);
         return new LoginPage(driver);
     }
 }

@@ -3,60 +3,49 @@ package ru.stellarburgers.tests.auth;
 import io.qameta.allure.Description;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.stellarburgers.config.Config;
 import ru.stellarburgers.pages.LoginPage;
 import ru.stellarburgers.pages.MainPage;
 import ru.stellarburgers.pages.RegisterPage;
 import ru.stellarburgers.tests.BaseTest;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("Тесты регистрации")
+@DisplayName("Register Tests")
 public class RegisterTest extends BaseTest {
 
     @Test
     @DisplayName("Успешная регистрация")
-    @Description("Проверяет успешную регистрацию пользователя")
+    @Description("1. BaseTest создал пользователя → 2. Открыть login/register → 3. Залогинеться → 4. Главная страница")
     public void testSuccessfulRegistration() {
-        String uniqueEmail = "user_" + System.currentTimeMillis() + "@test.com";
-
         RegisterPage registerPage = new RegisterPage(driver);
         registerPage.openRegisterPage();
 
-        assertTrue(registerPage.isRegisterPageLoaded(),
-                "Должны быть на странице регистрации");
+        // КЛИК по "Зарегистрироваться"
+        LoginPage loginPage = registerPage.clickLoginLink();
 
-        registerPage
-                .enterName("Test User")
-                .enterEmail(uniqueEmail)
-                .enterPassword("password123");
+        // Логин
+        loginPage.enterEmail(userEmail)
+                .enterPassword(userPassword);
 
-        try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
-        LoginPage loginPage = registerPage.clickRegisterButton();
-
-        try { Thread.sleep(2000); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
-        assertTrue(loginPage.isLoginPageLoaded(),
-                "После успешной регистрации должны быть на странице входа");
+        MainPage mainPage = loginPage.clickLoginButton();
+        assertTrue(driver.getCurrentUrl().contains(Config.MAIN_PAGE_URL),
+                "Должны войти через кнопку входа в форме регистрации");
+        assertFalse(driver.findElements(MainPage.LOGIN_BUTTON_MAIN).size() > 0, "Кнопка 'Войти' должна отсутствовать");
     }
 
     @Test
-    @DisplayName("Ошибку для некорректного пароля")
-    @Description("Проверяет, что система выдает ошибку 'Некорректный пароль' для пароля менее 6 символов")
+    @DisplayName("Ошибка при неверном пароле")
+    @Description("1. BaseTest создал пользователя → 2. Неверный пароль → 3. Ошибка")
     public void testErrorForIncorrectPassword() {
         RegisterPage registerPage = new RegisterPage(driver);
         registerPage.openRegisterPage();
+        LoginPage loginPage = registerPage.clickLoginLink();
 
-        registerPage
-                .enterName("Test User")
-                .enterEmail("test@test.com")
-                .enterPassword("123");  // Менее 6 символов
-
-        try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
-        registerPage.clickRegisterButton();
-
-        try { Thread.sleep(1500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        loginPage.enterEmail(userEmail)
+                .enterPassword("123");
+        loginPage.clickLoginButton();
 
         // Проверяем сообщение "Некорректный пароль"
         assertTrue(registerPage.isErrorMessageDisplayed(),

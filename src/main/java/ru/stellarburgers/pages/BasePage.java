@@ -10,19 +10,19 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 
 public class BasePage {
-    protected WebDriver driver;
+    protected static WebDriver driver;
     private static final int TIMEOUT = 20;
 
     public BasePage(WebDriver driver) {
         this.driver = driver;
     }
 
-    protected WebElement waitForElement(By locator) {
+    public static WebElement waitForElement(By locator) {
         return new WebDriverWait(driver, Duration.ofSeconds(TIMEOUT))
                 .until(ExpectedConditions.presenceOfElementLocated(locator));
     }
 
-    protected void click(By locator) {
+    protected static void click(By locator) {
         WebElement element = waitForElement(locator);
         element.click();
     }
@@ -49,7 +49,7 @@ public class BasePage {
         driver.get(url);
     }
 
-    protected void waitForUrlContains(String urlPart) {
+    public static void waitForUrlContains(String urlPart) {
         new WebDriverWait(driver, Duration.ofSeconds(TIMEOUT))
                 .until(ExpectedConditions.urlContains(urlPart));
     }
