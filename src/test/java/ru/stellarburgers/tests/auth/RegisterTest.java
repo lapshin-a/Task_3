@@ -3,6 +3,7 @@ package ru.stellarburgers.tests.auth;
 import io.qameta.allure.Description;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.stellarburgers.api.UserApi;
 import ru.stellarburgers.config.Config;
 import ru.stellarburgers.pages.LoginPage;
 import ru.stellarburgers.pages.MainPage;
@@ -33,6 +34,10 @@ public class RegisterTest extends BaseTest {
         assertTrue(driver.getCurrentUrl().contains(Config.MAIN_PAGE_URL),
                 "Должны войти через кнопку входа в форме регистрации");
         assertFalse(driver.findElements(MainPage.LOGIN_BUTTON_MAIN).size() > 0, "Кнопка 'Войти' должна отсутствовать");
+
+        if (accessToken != null && !accessToken.isEmpty()) {
+            UserApi.deleteUser(accessToken);
+        }
     }
 
     @Test
