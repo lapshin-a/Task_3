@@ -1,8 +1,11 @@
 package ru.stellarburgers.tests.auth;
 
 import io.qameta.allure.Description;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
 import ru.stellarburgers.api.UserApi;
 import ru.stellarburgers.config.Config;
 import ru.stellarburgers.pages.LoginPage;
@@ -18,47 +21,47 @@ public class RegisterTest extends BaseTest {
 
     @Test
     @DisplayName("Успешная регистрация")
-    @Description("1. BaseTest создал пользователя → 2. Открыть login/register → 3. Залогинеться → 4. Главная страница")
     public void testSuccessfulRegistration() {
+        String testEmail = UserApi.generateEmail();
+        String testPassword = UserApi.generatePassword();
+        String testName = UserApi.generateName();
+
         RegisterPage registerPage = new RegisterPage(driver);
-        registerPage.openRegisterPage();
+        registerPage.openRegisterPage()
+                .enterName(testName)
+                .enterEmail(testEmail)
+                .enterPassword(testPassword)
+                .clickRegisterButton();
 
-        // КЛИК по "Зарегистрироваться"
-        LoginPage loginPage = registerPage.clickLoginLink();
+        // проверка
+        assertTrue(driver.getCurrentUrl().contains(Config.LOGIN_PAGE_URL),
+                "После регистрации должна открыться страница логина");
 
-        // Логин
-        loginPage.enterEmail(userEmail)
-                .enterPassword(userPassword);
-
-        MainPage mainPage = loginPage.clickLoginButton();
-        assertTrue(driver.getCurrentUrl().contains(Config.MAIN_PAGE_URL),
-                "Должны войти через кнопку входа в форме регистрации");
-        assertFalse(driver.findElements(MainPage.LOGIN_BUTTON_MAIN).size() > 0, "Кнопка 'Войти' должна отсутствовать");
-
-        if (accessToken != null && !accessToken.isEmpty()) {
-            UserApi.deleteUser(accessToken);
-        }
+        // удаление пользователя
+        Response loginResp = UserApi.loginUser(testEmail, testPassword);
+        String testToken = loginResp.jsonPath().getString("accessToken");
+        UserApi.deleteUser("Bearer " + testToken);
     }
 
+
     @Test
-    @DisplayName("Ошибка при неверном пароле")
-    @Description("1. BaseTest создал пользователя → 2. Неверный пароль → 3. Ошибка")
-    public void testErrorForIncorrectPassword() {
+    @DisplayName("Ошибка при невалидном пароле в форме регистрации")
+    @Description("1. Открыть форму регистрации → 2. Ввести имя/email/невалидный пароль → 3. Клик кнопки → 4. Ошибка на RegisterPage")
+    public void testErrorForInvalidPasswordInRegisterForm() {
+        String testEmail = UserApi.generateEmail();
+        String testName = UserApi.generateName();
+        String invalidPassword = "123";  // < 6 символов
+
         RegisterPage registerPage = new RegisterPage(driver);
-        registerPage.openRegisterPage();
-        LoginPage loginPage = registerPage.clickLoginLink();
+        registerPage.openRegisterPage()
+                .enterName(testName)
+                .enterEmail(testEmail)
+                .enterPassword(invalidPassword)
+                .clickRegisterButtonWithoutWait();
 
-        loginPage.enterEmail(userEmail)
-                .enterPassword("123");
-        loginPage.clickLoginButton();
-
-        // Проверяем сообщение "Некорректный пароль"
-        assertTrue(registerPage.isErrorMessageDisplayed(),
-                "Должно быть сообщение об ошибке 'Некорректный пароль'");
-
-        // Проверяем точный текст ошибки
-        String errorText = registerPage.getErrorMessage();
-        assertTrue(errorText.contains("Некорректный пароль"),
-                "Текст ошибки должен содержать 'Некорректный пароль', но получили: " + errorText);
+        WebElement errorMsg = registerPage.waitForInputError();
+        assertTrue(errorMsg.isDisplayed(), "Ошибка пароля должна быть видна");
+        assertTrue(errorMsg.getText().contains("Некорректный пароль"),
+                "Ошибка должна содержать 'Некорректный пароль'. Получено: " + errorMsg.getText());
     }
 }

@@ -47,4 +47,15 @@ public class UserApi {
                 .header("Authorization", accessToken)
                 .delete(USER_ENDPOINT);
     }
+
+    public static Response loginUser(String email, String password) {
+        Map userData = new HashMap<>();
+        userData.put("email", email);
+        userData.put("password", password);
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(userData)
+                .post(Config.LOGIN_API_ENDPOINT);
+    }
 }

@@ -6,6 +6,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import ru.stellarburgers.config.Config;
 
+import java.util.List;
+
 public class RegisterPage extends BasePage {
 
     private static final String PAGE_URL = Config.REGISTER_PAGE_URL;
@@ -22,6 +24,7 @@ public class RegisterPage extends BasePage {
             By.xpath("//a[contains(text(), 'Войти')]");
     public static final By ERROR_MESSAGE =
             By.xpath("//p[contains(text(), 'Некорректный пароль')]");
+    public static final By INPUT_ERROR_TEXT = By.xpath("//p[contains(@class, 'input__error') or contains(@class, 'text_type_main-default')]");
 
     public RegisterPage(WebDriver driver) {
         super(driver);
@@ -73,23 +76,18 @@ public class RegisterPage extends BasePage {
         return new LoginPage(driver);
     }
 
-    @Step("Получение текста ошибки")
-    public String getErrorMessage() {
-        return getText(ERROR_MESSAGE);
+    @Step("Клик на кнопку Зарегистрироваться без ожидания редиректа")
+    public void clickRegisterButtonWithoutWait() {
+        click(REGISTER_BUTTON);
     }
 
-    @Step("Проверка наличия сообщения об ошибке 'Некорректный пароль'")
-    public boolean isErrorMessageDisplayed() {
-        return isElementDisplayed(ERROR_MESSAGE);
-    }
+    @Step("Ожидание ошибки валидации")
+    public WebElement waitForInputError() {
+        org.openqa.selenium.support.ui.WebDriverWait wait =
+                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(5));
 
-    @Step("Проверка загрузки страницы регистрации")
-    public boolean isRegisterPageLoaded() {
-        return isElementDisplayed(REGISTER_BUTTON);
-    }
-
-    @Step("Проверка URL страницы регистрации")
-    public void verifyRegisterPageUrl() {
-        waitForUrlContains(Config.REGISTER_PAGE_URL);
+        return wait.until(
+                org.openqa.selenium.support.ui.ExpectedConditions.presenceOfElementLocated(INPUT_ERROR_TEXT)
+        );
     }
 }
